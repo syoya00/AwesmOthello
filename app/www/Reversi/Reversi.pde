@@ -20,9 +20,8 @@ int pressY;
 boolean finish;
 
 void setup() {
-  surface.setResizable(true);
-
-  size(400, 600);
+  
+  size(innerWidth,innerHeight);
 
   boardY = height/2-width/2;
 
@@ -80,7 +79,7 @@ void draw() {
     for (int j=0; j<8; j++) {
       noFill();
       stroke(0);
-      strokeWeight(1);
+      strokeWeight(2);
       rect((width/8)*i, (width/8)*j+boardY, width/8, width/8);
       if (state[i][j]==0) {
       } else if (state[i][j]==1) {
@@ -253,12 +252,17 @@ boolean setCheck(int x, int y, int t, int m) {
             //another color
 
             int reverseNum = 0;
+            boolean noReverse = false;
 
             for (int k=2; k<8; k++) {
               if (x+i*k>=0&&x+i*k<8&&y+j*k>=0&&y+j*k<8&&reverseNum==0) {
                 //same color
-                if (state[x+i*k][y+j*k]==t) {
+                if (state[x+i*k][y+j*k]==t&&!noReverse) {
                   reverseNum = k;
+                }
+                if(state[x+i*k][y+j*k]==0&&reverseNum==0){
+                  reverseNum = 0;
+                  noReverse = true;
                 }
               }
             }
