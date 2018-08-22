@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html>
 
+<html lang="ja">
+
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Processing.js Demo</title>
     <script type="text/javascript" src="js/p.minim.js"></script>
+    <style>
+        body {
+            margin: 0;
+        }
+    </style>
 </head>
 
 <body>
-    <canvas data-processing-sources="Reversi/Reversi.pde Reversi/Board.pde"></canvas>
-
+    <canvas data-processing-sources="Reversi/Cell.pde Reversi/Reversi.pde Reversi/Board.pde"></canvas>
     <script src="js/processing.min.js"></script>
 </body>
 

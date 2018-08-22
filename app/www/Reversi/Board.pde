@@ -14,8 +14,7 @@ class Board {
 
     int margin;
 
-    int pressX;
-    int pressY;
+    Cell pressedCell;
 
     boolean finish;
 
@@ -42,8 +41,7 @@ class Board {
 
         margin = width/20;
 
-        pressX = -1;
-        pressY = -1;
+        pressedCell = new Cell(-1,-1);
 
         finish = false;
     }
@@ -207,17 +205,7 @@ class Board {
 
     void mousePressed() {
         //タッチした場所を保存
-        for (int i=0; i<8; i++) {
-            for (int j=0; j<8; j++) {
-                if (mouseX>(width/8)*i&&mouseX<(width/8)*(i+1)) {
-                    if (mouseY>(width/8)*j+boardY&&mouseY<(width/8)*(j+1)+boardY) {
-                        pressX = i;
-                        pressY = j;
-                    }
-                }
-            }
-        }
-
+        pressedCell = getCell(mouseX,mouseY);
         if (finish&&width/4<mouseX&&width/4 + width/2>mouseX&&width*3/4+boardY<mouseY&&width*3/4+boardY + width/8>mouseY) {
             reset();
         }
@@ -225,46 +213,31 @@ class Board {
 
     void mouseReleased() {
         //指が離れた場所がタッチした場所と同じなら石を置く
-        for (int i=0; i<8; i++) {
-            for (int j=0; j<8; j++) {
-                if (mouseX>(width/8)*i&&mouseX<(width/8)*(i+1)) {
-                    if (mouseY>(width/8)*j+boardY&&mouseY<(width/8)*(j+1)+boardY) {
+        Cell relesedCell = getCell(mouseX,mouseY);
+        if (!pressedCell.isEqual(relesedCell)) return;
 
-                        if (pressX==i&&pressY==j) {
-
-                            if (turn==1) {
-                                if (setCheck(i, j, turn, 1)) {
-                                    state[i][j]=1;
-                                    beforeX = i;
-                                    beforeY = j;
-                                    turn = -1;
-                                }
-                            } else {
-                                if (setCheck(i, j, turn, 1)) {
-                                    state[i][j]=-1;
-                                    beforeX = i;
-                                    beforeY = j;
-                                    turn = 1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        if (setCheck(pressedCell.x, pressedCell.y, turn, 1)) {
+            state[pressedCell.x][pressedCell.y]=turn;
+            beforeX = pressedCell.x;
+            beforeY = pressedCell.y;
+            turn = -turn;
         }
 
         skipCheck();
     }
 
-    int[] touchCell(int x,int y){
+    Call getCell(int x,int y){
         for (int i=0; i<8; i++) {
             for (int j=0; j<8; j++) {
                 if (x>(width/8)*i&&x<(width/8)*(i+1)) {
                     if (y>(width/8)*j+boardY&&y<(width/8)*(j+1)+boardY) {
+                        return new Cell(i,j);
                     }
                 }
             }
         }
+
+        return new Cell(-1, -1);
     }
 
     boolean setCheck(int x, int y, int t, int m) {
@@ -333,7 +306,6 @@ class Board {
     }
 
     void result() {
-
         black = 0;
         white = 0;
 

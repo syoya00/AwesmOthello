@@ -11,7 +11,7 @@ void draw() {
 
 void mousePressed() {
   board.mousePressed();
-}
+};
 
 void mouseReleased() {
   board.mouseReleased();
