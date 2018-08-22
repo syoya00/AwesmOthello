@@ -2,7 +2,6 @@ class Board {
     int boardY;
 
     int state [][] = new int[8][8];
-    int canSetPoint [][] = new int[8][8];
 
     int turn;
     int skipCount;
@@ -23,12 +22,6 @@ class Board {
     Board() {
         boardY = height/2-width/2;
 
-        for (int i=0; i<8; i++) {
-            for (int j=0; j<8; j++) {
-                state[i][j]=0;
-                canSetPoint[i][j]=0;
-            }
-        }
         state[3][3]=-1;
         state[3][4]=1;
         state[4][3]=1;
@@ -94,9 +87,12 @@ class Board {
         ellipse(width*1/4, width*3/4+boardY, width/80, width/80);
         ellipse(width*3/4, width*3/4+boardY, width/80, width/80);
 
+        canSetPoints = getCanSetPoints(turn);
+
+
         for (int i=0; i<8; i++) {
             for (int j=0; j<8; j++) {
-                if (canSetPoint[i][j]==1) {
+                if (canSetPoints[i][j]==1) {
                     if (turn==1) {
                         drawStone(i, j, 2);
                     } else {
@@ -180,13 +176,41 @@ class Board {
         }
     }
 
+    int[][] getCanSetPoints(int turn) {
+        int[][] canSetPoint = new int[8][8];
+
+        for (int i=0; i<8; i++) {
+            for (int j=0; j<8; j++) {
+                if (setCheck(i, j, turn, 0)) {
+                    canSetPoint[i][j] = 1;
+                } else {
+                    canSetPoint[i][j] = 0;
+                }
+            }
+        }
+
+        return canSetPoint;
+    }
+
+    int getCanSetPointsCount() {
+        int count = 0;
+        int[][] canSetPoints = getCanSetPoints(turn);
+        for (int i=0; i<8; i++) {
+            for (int j=0; j<8; j++) {
+                if(canSetPoints[i][j] == 1){
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
     void mousePressed() {
         //タッチした場所を保存
         for (int i=0; i<8; i++) {
             for (int j=0; j<8; j++) {
                 if (mouseX>(width/8)*i&&mouseX<(width/8)*(i+1)) {
                     if (mouseY>(width/8)*j+boardY&&mouseY<(width/8)*(j+1)+boardY) {
-
                         pressX = i;
                         pressY = j;
                     }
@@ -195,7 +219,6 @@ class Board {
         }
 
         if (finish&&width/4<mouseX&&width/4 + width/2>mouseX&&width*3/4+boardY<mouseY&&width*3/4+boardY + width/8>mouseY) {
-            //rect(width/4, width*3/4+boardY, width/2, width/8);
             reset();
         }
     }
@@ -231,6 +254,17 @@ class Board {
         }
 
         skipCheck();
+    }
+
+    int[] touchCell(int x,int y){
+        for (int i=0; i<8; i++) {
+            for (int j=0; j<8; j++) {
+                if (x>(width/8)*i&&x<(width/8)*(i+1)) {
+                    if (y>(width/8)*j+boardY&&y<(width/8)*(j+1)+boardY) {
+                    }
+                }
+            }
+        }
     }
 
     boolean setCheck(int x, int y, int t, int m) {
@@ -286,31 +320,14 @@ class Board {
     }
 
     void skipCheck() {
-        boolean none = true;
-
-        for (int i=0; i<8; i++) {
-            for (int j=0; j<8; j++) {
-                canSetPoint[i][j] = 0;
-            }
-        }
-
-        for (int i=0; i<8; i++) {
-            for (int j=0; j<8; j++) {
-                if (setCheck(i, j, turn, 0)) {
-                    canSetPoint[i][j] = 1;
-                    none = false;
-                }
-            }
-        }
-
-        if (none) {
+        if (getCanSetPointsCount() == 0) {
             turn = -turn;
             skipCount++;
         } else {
             skipCount = 0;
         }
 
-        if (skipCount==2) {
+        if (skipCount>=2) {
             finish = true;
         }
     }
@@ -332,15 +349,12 @@ class Board {
     }
 
     void reset() {
-
-        boardY = height/2-width/2;
-
         for (int i=0; i<8; i++) {
             for (int j=0; j<8; j++) {
-                state[i][j]=0;
-                canSetPoint[i][j]=0;
+                state[i][j] = 0;
             }
         }
+
         state[3][3]=-1;
         state[3][4]=1;
         state[4][3]=1;
