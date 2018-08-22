@@ -14,6 +14,9 @@ int beforeY;
 
 int margin;
 
+int pressX;
+int pressY;
+
 boolean finish;
 
 void setup() {
@@ -35,8 +38,8 @@ void setup() {
   state[4][4]=-1;
 
   turn = 1;
-  //1:kuro
-  //-1:siro
+  //1:黒
+  //-1:白
 
   skipCount = 0;
   skipCheck();
@@ -48,6 +51,9 @@ void setup() {
   beforeY = -1;
 
   margin = width/20;
+
+  pressX = -1;
+  pressY = -1;
 
   finish = false;
 }
@@ -143,31 +149,31 @@ void drawStone(int x, int y, int t) {
   int positionY = (width/8)*y+width/16+boardY;
   switch(t) {
   case 0:
-    //black
+    //黒の石を描く
     noStroke();
     fill(0);
     ellipse(positionX, positionY, width/10, width/10);
     break;
   case 1:
-    //white
+    //白の石を描く
     noStroke();
     fill(255);
     ellipse(positionX, positionY, width/10, width/10);
     break;
   case 2:
-    //black marker
+    //黒の石がおける場所を描く
     noStroke();
     fill(0);
     ellipse(positionX, positionY, width/24, width/24);
     break;
   case 3:
-    //white marker
+    //白の石がおける場所を描く
     noStroke();
     fill(255);
     ellipse(positionX, positionY, width/24, width/24);
     break;
   case 4:
-    //red marker
+    //ひとつ前においた石の場所を描く
     noStroke();
     fill(255, 0, 0);
     ellipse(positionX, positionY, width/24, width/24);
@@ -178,23 +184,48 @@ void drawStone(int x, int y, int t) {
 }
 
 void mousePressed() {
+  //タッチした場所を保存
   for (int i=0; i<8; i++) {
     for (int j=0; j<8; j++) {
       if (mouseX>(width/8)*i&&mouseX<(width/8)*(i+1)) {
         if (mouseY>(width/8)*j+boardY&&mouseY<(width/8)*(j+1)+boardY) { 
-          if (turn==1) {
-            if (setCheck(i, j, turn, 1)) {
-              state[i][j]=1;
-              beforeX = i;
-              beforeY = j;
-              turn = -1;
-            }
-          } else {
-            if (setCheck(i, j, turn, 1)) {
-              state[i][j]=-1;
-              beforeX = i;
-              beforeY = j;
-              turn = 1;
+
+          pressX = i;
+          pressY = j;
+        }
+      }
+    }
+  }
+
+  if (finish&&width/4<mouseX&&width/4 + width/2>mouseX&&width*3/4+boardY<mouseY&&width*3/4+boardY + width/8>mouseY) {
+    //rect(width/4, width*3/4+boardY, width/2, width/8);
+    reset();
+  }
+}
+
+void mouseReleased() {
+  //指が離れた場所がタッチした場所と同じなら石を置く
+  for (int i=0; i<8; i++) {
+    for (int j=0; j<8; j++) {
+      if (mouseX>(width/8)*i&&mouseX<(width/8)*(i+1)) {
+        if (mouseY>(width/8)*j+boardY&&mouseY<(width/8)*(j+1)+boardY) { 
+
+          if (pressX==i&&pressY==j) {
+
+            if (turn==1) {
+              if (setCheck(i, j, turn, 1)) {
+                state[i][j]=1;
+                beforeX = i;
+                beforeY = j;
+                turn = -1;
+              }
+            } else {
+              if (setCheck(i, j, turn, 1)) {
+                state[i][j]=-1;
+                beforeX = i;
+                beforeY = j;
+                turn = 1;
+              }
             }
           }
         }
@@ -203,11 +234,6 @@ void mousePressed() {
   }
 
   skipCheck();
-
-  if (finish&&width/4<mouseX&&width/4 + width/2>mouseX&&width*3/4+boardY<mouseY&&width*3/4+boardY + width/8>mouseY) {
-    //rect(width/4, width*3/4+boardY, width/2, width/8);
-    reset();
-  }
 }
 
 boolean setCheck(int x, int y, int t, int m) {
