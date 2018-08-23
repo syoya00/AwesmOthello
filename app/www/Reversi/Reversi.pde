@@ -6,6 +6,7 @@ void setup() {
 }
 
 void draw() {
+  board.update();
   board.display();
 }
 

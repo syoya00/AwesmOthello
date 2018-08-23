@@ -1,176 +1,117 @@
 class Board {
-    int boardY;
+    int x,y;
+    int cornerX, cornerY;
+    int boardSize;
+    int cellSize;
+    int blackPointSize;
 
+    int stoneSize;
+    int markerSize;
+    int beforeCellMarkerSize;
+    
     int state [][] = new int[8][8];
 
     int turn;
     int skipCount;
 
-    int black;
-    int white;
-
-    int beforeX;
-    int beforeY;
-
-    int margin;
-
+    Call beforeCell;
     Cell pressedCell;
 
     boolean finish;
 
+    String drawText = "DRAW";
+    String blackWinText = "BLACK WIN";
+    String whiteWinText = "WHITE WIN";
+
     Board() {
-        boardY = height/2-width/2;
+        textAlign(CENTER, CENTER);
+
+        x = width/2;
+        y = height/2;
+        cornerX = x - width/2;
+        cornerY = y - width/2;
+        boardSize = width;
+        cellSize = boardSize/8;
+        blackPointSize = boardSize/80;
+        stoneSize = boardSize/10;
+        markerSize = boardSize/24;
+        beforeCellMarkerSize = stoneSize/3
 
         state[3][3]=-1;
         state[3][4]=1;
         state[4][3]=1;
         state[4][4]=-1;
 
+        //1:黒, -1:白
         turn = 1;
-        //1:黒
-        //-1:白
-
         skipCount = 0;
-        skipCheck();
-
-        black = -1;
-        white = -1;
-
-        beforeX = -1;
-        beforeY = -1;
-
-        margin = width/20;
-
-        pressedCell = new Cell(-1,-1);
-
         finish = false;
+
+        beforeCell = new Cell(-1, -1);
+        pressedCell = new Cell(-1, -1);
     }
 
     void display() {
+        displayboard();
+        displayStone();
+        displayMarker();
+        displayBeforeCell();
+        displayInfo();
 
-        boardY = height/2-width/2;
+        if (finish) {
+            displayFinish();
+        }
+    }
 
-        smooth();
-        background(0, 120, 0);
+    void update(){
+        if(finish) return;
+        skipCheck();                
+    }
 
-        result();
-
-        textAlign(CORNER, CORNER);
-        textSize(width/10);
-        fill(0);
-        ellipse(width/8, boardY/2, width/10, width/10);
-        text(black, width/4, boardY*2/3);
-        fill(255);
-        ellipse(width*5/8, boardY/2, width/10, width/10);
-        text(white, width*3/4, boardY*2/3);
+    void displayboard() {
+        rectMode(CENTER);
+        fill(0, 120, 0);
+        rect(x, y, boardSize, boardSize);
 
         for (int i=0; i<8; i++) {
             for (int j=0; j<8; j++) {
                 noFill();
                 stroke(0);
                 strokeWeight(2);
-                rect((width/8)*i, (width/8)*j+boardY, width/8, width/8);
-                if (state[i][j]==0) {
-                } else if (state[i][j]==1) {
+                rect( cornerX + cellSize * (i + 1/2), cornerY + cellSize * (j + 1/2), cellSize, cellSize);
+            }
+        }
+
+        fill(0);
+        ellipse( cornerX + boardSize*1/4, cornerY + boardSize*1/4, blackPointSize, blackPointSize);
+        ellipse( cornerX + boardSize*3/4, cornerY + boardSize*1/4, blackPointSize, blackPointSize);
+        ellipse( cornerX + boardSize*1/4, cornerY + boardSize*3/4, blackPointSize, blackPointSize);
+        ellipse( cornerX + boardSize*3/4, cornerY + boardSize*3/4, blackPointSize, blackPointSize);
+    }
+
+    void displayStone(){
+        for (int i=0; i<8; i++) {
+            for (int j=0; j<8; j++) {        
+                if (state[i][j]==1) {
                     drawStone(i, j, 0);
                 } else if (state[i][j]==-1) {
                     drawStone(i, j, 1);
                 }
             }
         }
-
-        fill(0);
-        ellipse(width*1/4, width*1/4+boardY, width/80, width/80);
-        ellipse(width*3/4, width*1/4+boardY, width/80, width/80);
-        ellipse(width*1/4, width*3/4+boardY, width/80, width/80);
-        ellipse(width*3/4, width*3/4+boardY, width/80, width/80);
-
-        canSetPoints = getCanSetPoints(turn);
-
-
-        for (int i=0; i<8; i++) {
-            for (int j=0; j<8; j++) {
-                if (canSetPoints[i][j]==1) {
-                    if (turn==1) {
-                        drawStone(i, j, 2);
-                    } else {
-                        drawStone(i, j, 3);
-                    }
-                } else {
-                }
-            }
-        }
-
-        if (beforeX!=-1) {
-            drawStone(beforeX, beforeY, 4);
-        }
-
-        if (finish) {
-            fill(255, 255, 255, 200);
-            rect(0, boardY, width, width);
-            result();
-            textAlign(CENTER, CENTER);
-
-            if (black>white) {
-                textSize(width/10);
-                fill(0);
-                text("BLACK WIN", width/2, height/2);
-            } else if (black<white) {
-                textSize(width/5);
-                fill(0);
-                text("WHITW WIN", width/2, height/2);
-            } else {
-                fill(255, 255, 0);
-                text("DRAW", width/2, height/2);
-            }
-
-            stroke(0);
-            strokeWeight(3);
-            noFill();
-            rect(width/4, width*3/4+boardY, width/2, width/8);
-            text("reset", width/2, width*19/24+boardY);
-        } else {
-            skipCheck();
-        }
     }
 
-    void drawStone(int x, int y, int t) {
-        noStroke();
-        int positionX = (width/8)*x+width/16;
-        int positionY = (width/8)*y+width/16+boardY;
-        switch(t) {
-        case 0:
-            //黒の石を描く
-            noStroke();
-            fill(0);
-            ellipse(positionX, positionY, width/10, width/10);
-            break;
-        case 1:
-            //白の石を描く
-            noStroke();
-            fill(255);
-            ellipse(positionX, positionY, width/10, width/10);
-            break;
-        case 2:
-            //黒の石がおける場所を描く
-            noStroke();
-            fill(0);
-            ellipse(positionX, positionY, width/24, width/24);
-            break;
-        case 3:
-            //白の石がおける場所を描く
-            noStroke();
-            fill(255);
-            ellipse(positionX, positionY, width/24, width/24);
-            break;
-        case 4:
-            //ひとつ前においた石の場所を描く
-            noStroke();
-            fill(255, 0, 0);
-            ellipse(positionX, positionY, width/24, width/24);
-            break;
-        default:
-            break;
+    void displayMarker(){
+        canSetPoints = getCanSetPoints(turn);
+        for (int i=0; i<8; i++) {
+            for (int j=0; j<8; j++) {
+                if (canSetPoints[i][j]!=1) continue;
+                if (turn==1) {
+                    drawStone(i, j, 2);
+                } else {
+                    drawStone(i, j, 3);
+                }
+            }
         }
     }
 
@@ -203,40 +144,117 @@ class Board {
         return count;
     }
 
+    void displayBeforeCell(){
+        if (beforeCell.x == -1) return;
+        drawStone(beforeCell.x, beforeCell.y, 4);
+    }
+
+    void drawStone(int i, int j, int t) {
+        int positionX = cornerX + cellSize * (i + 1/2);
+        int positionY = cornerY + cellSize * (j + 1/2);
+
+        noStroke();
+        switch(t) {
+        case 0:
+            //黒の石を描く
+            fill(0);
+            ellipse(positionX, positionY, stoneSize, stoneSize);
+            break;
+        case 1:
+            //白の石を描く
+            fill(255);
+            ellipse(positionX, positionY, stoneSize, stoneSize);
+            break;
+        case 2:
+            //黒の石がおける場所を描く
+            fill(0);
+            ellipse(positionX, positionY, markerSize, markerSize);
+            break;
+        case 3:
+            //白の石がおける場所を描く
+            fill(255);
+            ellipse(positionX, positionY, markerSize, markerSize);
+            break;
+        case 4:
+            //ひとつ前においた石の場所を描く
+            fill(255, 0, 0);
+            ellipse(positionX, positionY, beforeCellMarkerSize, beforeCellMarkerSize);
+            break;
+        default:
+            break;
+        }
+    }
+
+    void displayInfo(){
+        // textSize(boardSize/10);
+        // fill(0);
+        // ellipse(boardSize/8, y/2, boardSize/10, boardSize/10);
+        // text(black, boardSize/4, y*2/3);
+        // fill(255);
+        // ellipse(boardSize*5/8, y/2, boardSize/10, boardSize/10);
+        // text(white, boardSize*3/4, y*2/3);
+    }
+
+    void displayFinish(){
+        fill(255, 255, 255, 200);
+        rect(x, y, boardSize, boardSize);
+
+        fill(0);
+        int[] stones = getStonesCount();
+        textSize(boardSize/10);
+
+        if (stones[0]>stones[1]) {
+            text(blackWinText, boardSize/2, height/2);
+        } else if (stones[0]<stones[1]) {
+            text(whiteWinText, boardSize/2, height/2);
+        } else {
+            text(drawText, boardSize/2, height/2);
+        }
+
+        stroke(0);
+        strokeWeight(3);
+        noFill();
+        rect(x, y + boardSize*1/4, boardSize/2, boardSize/8);
+
+        fill(0);
+        textSize(boardSize/16);
+        text("reset", x, y + boardSize*1/4);
+    }
+
     void mousePressed() {
         //タッチした場所を保存
-        pressedCell = getCell(mouseX,mouseY);
-        if (finish&&width/4<mouseX&&width/4 + width/2>mouseX&&width*3/4+boardY<mouseY&&width*3/4+boardY + width/8>mouseY) {
+        pressedCell = mouseToCell(mouseX,mouseY);
+        if (!finish) return;
+        if(mouseX > x - boardSize/4 && mouseX < x + boardSize/4 && mouseY > (y + boardSize*1/4) - boardSize*1/16 && mouseY < (y + boardSize*1/4) + boardSize*1/16) {
             reset();
         }
     }
 
     void mouseReleased() {
         //指が離れた場所がタッチした場所と同じなら石を置く
-        Cell relesedCell = getCell(mouseX,mouseY);
+        Cell relesedCell = mouseToCell(mouseX,mouseY);
+        if(relesedCell.x < 0) return;
         if (!pressedCell.isEqual(relesedCell)) return;
 
         if (setCheck(pressedCell.x, pressedCell.y, turn, 1)) {
             state[pressedCell.x][pressedCell.y]=turn;
-            beforeX = pressedCell.x;
-            beforeY = pressedCell.y;
+            beforeCell.x = pressedCell.x;
+            beforeCell.y = pressedCell.y;
             turn = -turn;
         }
 
         skipCheck();
     }
 
-    Call getCell(int x,int y){
+    Call mouseToCell(int mx,int my){
         for (int i=0; i<8; i++) {
             for (int j=0; j<8; j++) {
-                if (x>(width/8)*i&&x<(width/8)*(i+1)) {
-                    if (y>(width/8)*j+boardY&&y<(width/8)*(j+1)+boardY) {
-                        return new Cell(i,j);
-                    }
-                }
+                if ( !(mx > cornerX + cellSize*i && mx < cornerX + cellSize*(i+1)) ) continue;
+                if ( !(my > cornerY +  cellSize*j && my < cornerY + cellSize*(j+1)) ) continue;
+
+                return new Cell(i,j);
             }
         }
-
         return new Cell(-1, -1);
     }
 
@@ -305,19 +323,19 @@ class Board {
         }
     }
 
-    void result() {
-        black = 0;
-        white = 0;
+    int[] getStonesCount() {
+        int[] stones = {0, 0};
 
         for (int i=0; i<8; i++) {
             for (int j=0; j<8; j++) {
                 if (state[i][j]==1) {
-                    black++;
+                    stones[0]++;
                 } else if (state[i][j]==-1) {
-                    white++;
+                    stones[1]++;
                 }
             }
         }
+        return stones;
     }
 
     void reset() {
@@ -339,13 +357,8 @@ class Board {
         skipCount = 0;
         skipCheck();
 
-        black = -1;
-        white = -1;
-
-        beforeX = -1;
-        beforeY = -1;
-
-        margin = width/20;
+        beforeCell.x = -1;
+        beforeCell.y = -1;
 
         finish = false;
     }
